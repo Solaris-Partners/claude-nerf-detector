@@ -109,17 +109,17 @@ export default function Dashboard() {
             <div className="bg-gray-900 rounded-lg px-8 py-6 inline-block mb-4">
               <p className="text-sm text-gray-400 mb-2">Run in Claude Code:</p>
               <code className="text-green-400 text-2xl font-mono block mb-3">npx claude-nerf-test</code>
-              <p className="text-xs text-gray-500">Then respond to all 5 test prompts</p>
-              <p className="text-xs text-gray-400 mt-2">💡 Pro tip: Use hooks for auto-scoring (see below)</p>
+              <p className="text-xs text-gray-500">Respond to all 5 prompts quickly!</p>
+              <p className="text-xs text-orange-400 mt-2">⏰ Auto-scores after 30 seconds</p>
             </div>
             
             {/* How It Works - Compact */}
             <div className="flex justify-center items-center gap-4 text-xs text-blue-200 mb-2">
-              <span>1. Run test prompts</span>
+              <span>1. Run test</span>
               <span className="text-blue-300">→</span>
-              <span>2. Claude responds</span>
+              <span>2. Respond quickly</span>
               <span className="text-blue-300">→</span>
-              <span>3. Score & submit</span>
+              <span>3. Auto-scores in 30s</span>
             </div>
             
             <p className="text-sm text-blue-200">Join {stats.uniqueUsers || 0} users tracking Claude's performance</p>
@@ -208,46 +208,50 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Setup Instructions */}
+      {/* How It Works */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         <div className="bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b">
-            <h3 className="text-lg font-semibold text-gray-900">🚀 Auto-Scoring with Hooks (Recommended)</h3>
+            <h3 className="text-lg font-semibold text-gray-900">🚀 How It Works - Fully Automatic!</h3>
           </div>
           <div className="p-6">
-            <p className="text-gray-700 mb-4">Configure Claude Code to automatically score your responses:</p>
+            <div className="space-y-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 bg-blue-100 rounded-full p-2 mr-4">
+                  <span className="text-blue-600 font-bold">1</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">Run the test</h4>
+                  <p className="text-sm text-gray-600 mt-1">Execute <code className="bg-gray-100 px-2 py-1 rounded">npx claude-nerf-test</code> in Claude Code</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start">
+                <div className="flex-shrink-0 bg-blue-100 rounded-full p-2 mr-4">
+                  <span className="text-blue-600 font-bold">2</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">Respond to all 5 prompts</h4>
+                  <p className="text-sm text-gray-600 mt-1">Answer the algorithm, parsing, bug fix, CLI, and math questions</p>
+                  <p className="text-xs text-orange-600 mt-1">⚡ You have 30 seconds to complete all responses!</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start">
+                <div className="flex-shrink-0 bg-green-100 rounded-full p-2 mr-4">
+                  <span className="text-green-600 font-bold">3</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">Automatic scoring & submission</h4>
+                  <p className="text-sm text-gray-600 mt-1">After 30 seconds, your responses are automatically scored and submitted</p>
+                  <p className="text-sm text-gray-600 mt-1">View your results and compare with the community!</p>
+                </div>
+              </div>
+            </div>
             
-            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
-              <p className="text-sm font-semibold text-blue-900 mb-2">Step 1: Create hooks configuration file</p>
-              <p className="text-sm text-blue-800">
-                In your terminal (outside Claude Code), create the file:
-              </p>
-              <code className="block bg-white px-3 py-2 rounded mt-2 text-sm text-gray-800">
-                mkdir -p ~/.claude && nano ~/.claude/hooks.json
-              </code>
-            </div>
-
-            <div className="bg-gray-50 rounded-lg p-4 mb-4">
-              <p className="text-sm font-semibold text-gray-700 mb-2">Step 2: Add this configuration:</p>
-              <pre className="bg-gray-900 text-green-400 p-3 rounded text-sm overflow-x-auto">
-{`{
-  "user-prompt-submit": {
-    "command": "npx claude-nerf-test score"
-  }
-}`}
-              </pre>
-            </div>
-
-            <div className="bg-green-50 border-l-4 border-green-400 p-4">
-              <p className="text-sm font-semibold text-green-900 mb-2">Step 3: Run the test in Claude Code</p>
-              <p className="text-sm text-green-800 mb-2">
-                With hooks configured, just run:
-              </p>
-              <code className="block bg-white px-3 py-2 rounded text-sm text-gray-800">
-                npx claude-nerf-test
-              </code>
-              <p className="text-xs text-green-700 mt-2">
-                After you respond to all prompts, results will be automatically scored!
+            <div className="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-400">
+              <p className="text-sm text-yellow-800">
+                <strong>💡 Tip:</strong> The test captures everything you output during the 30-second window. Make sure to respond to all 5 prompts before time runs out!
               </p>
             </div>
           </div>

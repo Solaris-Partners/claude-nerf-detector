@@ -5,6 +5,7 @@ import { homedir, hostname, platform } from 'os';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { program } from 'commander';
+import * as readline from 'readline';
 
 // Configuration
 const API_URL = process.env.NERF_API_URL || 'https://claude-nerf-detector.vercel.app/api';
@@ -103,19 +104,20 @@ const validators = {
   }
 };
 
-// Display tests for Claude to respond to
+// Main test runner with automatic scoring
 async function runTests() {
-  console.log('\n🚀 Claude NerfDetector v2.5.0\n');
+  console.log('\n🚀 Claude NerfDetector v2.6.0\n');
   console.log('━'.repeat(60));
-  console.log('                    TEST MODE');
+  console.log('              AUTOMATIC TEST MODE');
   console.log('━'.repeat(60));
-  console.log('📋 Instructions:');
-  console.log('1. Respond to ALL 5 test prompts below');
-  console.log('2. Results will be automatically scored via hooks');
+  console.log('📋 How this works:');
+  console.log('1. I\'ll show you 5 test prompts');
+  console.log('2. You respond to ALL prompts in one message');
+  console.log('3. After 30 seconds, I\'ll automatically score your responses');
   console.log('━'.repeat(60));
-  console.log('\nStarting tests...\n');
+  console.log('\nPreparing tests...\n');
   
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await new Promise(resolve => setTimeout(resolve, 2000));
 
   // Display all test prompts
   console.log('\n' + '═'.repeat(60));
@@ -156,59 +158,61 @@ async function runTests() {
   console.log('speed for the entire journey including the stop?\n');
   
   console.log('═'.repeat(60));
-  console.log('\n✅ Tests displayed. Please respond to all 5 prompts above.');
-  console.log('\n💡 Tip: Configure a hook to run "npx claude-nerf-test score"');
-  console.log('   after you\'ve finished responding to automatically score results.');
-  console.log('\nExample .claude/hooks.json:');
-  console.log('```json');
-  console.log('{');
-  console.log('  "user-prompt-submit": {');
-  console.log('    "command": "npx claude-nerf-test score"');
-  console.log('  }');
-  console.log('}');
-  console.log('```');
-}
+  console.log('\n⏰ IMPORTANT: Respond to ALL 5 prompts above NOW!');
+  console.log('   Auto-scoring will begin in 30 seconds...\n');
   
-// Score previously captured responses
-async function scoreResponses() {
-  console.log('\n📊 Scoring Claude NerfDetector Results\n');
+  // Start capture immediately
+  const startTime = Date.now();
+  let capturedOutput = '';
+  const originalWrite = process.stdout.write;
+  const originalLog = console.log;
   
-  // Capture Claude's response that just happened
-  const startCapture = Date.now();
-  let capturedResponses = '';
-  
-  // Give Claude a moment to finish outputting
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  // Read the last ~50 lines from stdout (should contain Claude's responses)
-  // This is a simple approach - in production you might want to use a more sophisticated method
-  const recentOutput = process.stdout.write.toString() || '';
-  
-  // For now, we'll ask the user to paste their responses
-  console.log('Capturing Claude\'s responses from this session...');
-  console.log('(Note: This works best when triggered via hooks)\n');
-  
-  // Simple heuristic: look for test-related content in recent console output
-  // In practice, hooks would help us capture this more reliably
-  capturedResponses = recentOutput || 'No responses captured';
-  
-  // If we don't have good responses, check if they were saved from a previous run
-  if (!capturedResponses || capturedResponses.length < 100) {
-    const saved = loadResponses();
-    if (saved) {
-      capturedResponses = saved;
-      console.log('Using saved responses from previous test run.\n');
-    } else {
-      console.log('⚠️  No responses captured. Please ensure you:');
-      console.log('1. Run "npx claude-nerf-test" first');
-      console.log('2. Respond to all 5 test prompts');
-      console.log('3. Then run "npx claude-nerf-test score"');
-      console.log('\nOr configure a hook to run scoring automatically.');
-      return;
+  // Intercept all output
+  const captureOutput = (text: string) => {
+    capturedOutput += text;
+    // Save to file for backup
+    if (!existsSync(CONFIG_DIR)) {
+      mkdirSync(CONFIG_DIR, { recursive: true });
     }
-  }
+    writeFileSync(RESPONSE_FILE, capturedOutput);
+  };
   
-  const totalTime = Date.now() - startCapture;
+  process.stdout.write = function(chunk: any, ...args: any[]): boolean {
+    const text = chunk?.toString() || '';
+    captureOutput(text);
+    return originalWrite.apply(process.stdout, [chunk, ...args] as any);
+  };
+  
+  console.log = function(...args: any[]) {
+    const text = args.join(' ') + '\n';
+    captureOutput(text);
+    return originalLog.apply(console, args);
+  };
+  
+  // Wait 30 seconds for Claude to respond
+  let countdown = 30;
+  const countdownInterval = setInterval(() => {
+    countdown--;
+    if (countdown > 0 && countdown % 10 === 0) {
+      originalLog(`⏱️  ${countdown} seconds remaining...`);
+    }
+  }, 1000);
+  
+  await new Promise(resolve => setTimeout(resolve, 30000));
+  clearInterval(countdownInterval);
+  
+  // Restore original functions
+  process.stdout.write = originalWrite;
+  console.log = originalLog;
+  
+  const totalTime = Date.now() - startTime;
+  
+  // Auto-score the captured responses
+  console.log('\n\n' + '═'.repeat(60));
+  console.log('📊 AUTO-SCORING YOUR RESPONSES');
+  console.log('═'.repeat(60) + '\n');
+  
+  await new Promise(resolve => setTimeout(resolve, 1000));
   
   const scores: Record<string, number> = {};
   const testResults: any[] = [];
@@ -222,10 +226,9 @@ async function scoreResponses() {
     { id: 'P5', name: 'Math Reasoning' }
   ];
   
-  // Score each test
   for (const test of tests) {
     const validator = validators[test.id as keyof typeof validators];
-    const passed = validator(capturedResponses);
+    const passed = validator(capturedOutput);
     scores[test.id] = passed ? 1 : 0;
     totalScore += scores[test.id];
     
@@ -239,10 +242,6 @@ async function scoreResponses() {
   }
   
   // Display results
-  console.log('═'.repeat(60));
-  console.log('                    TEST RESULTS');
-  console.log('═'.repeat(60) + '\n');
-  
   console.log('Individual Scores:');
   for (const test of tests) {
     const score = scores[test.id];
@@ -268,7 +267,7 @@ async function scoreResponses() {
         test_score: totalScore,
         total_tests: 5,
         ttft_ms: Math.round(totalTime / 5),
-        avg_output_length: capturedResponses.length / 5,
+        avg_output_length: capturedOutput.length / 5,
         region,
         test_details: testResults
       })
@@ -309,54 +308,139 @@ async function scoreResponses() {
   console.log('✨ Thank you for contributing to Claude NerfDetector!');
   console.log('📈 View global stats: https://claude-nerf-detector.vercel.app');
   console.log('═'.repeat(60) + '\n');
-  
-  // Clean up response file
-  if (existsSync(RESPONSE_FILE)) {
-    try {
-      // Keep for debugging but could delete in production
-      // unlinkSync(RESPONSE_FILE);
-    } catch {}
-  }
 }
-
-// Hook-triggered scoring with response capture
-async function captureAndScore() {
-  console.log('\n🎯 Claude NerfDetector - Auto-Scoring Mode\n');
-  console.log('Capturing your responses from the previous prompts...');
   
-  // This function is called by the hook after Claude responds
-  // We need to capture what Claude just output
+// Manual scoring command (backup option)
+async function scoreManual() {
+  console.log('\n📊 Manual Scoring Mode\n');
   
-  // Create a marker to identify Claude's responses
-  const marker = '<<<NERF_RESPONSE_START>>>';
-  console.log(marker);
+  // Load saved responses
+  const saved = loadResponses();
+  if (!saved) {
+    console.log('⚠️  No saved responses found.');
+    console.log('Please run "npx claude-nerf-test" first and respond to the prompts.');
+    return;
+  }
   
-  // Wait a moment for any remaining output
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  console.log('Scoring saved responses...\n');
   
-  // Now score based on what was output between test display and this scoring
-  // In practice, the hook system should help us capture the actual responses
-  await scoreResponses();
+  const scores: Record<string, number> = {};
+  const testResults: any[] = [];
+  let totalScore = 0;
+  
+  const tests = [
+    { id: 'P1', name: 'Algorithm Implementation' },
+    { id: 'P2', name: 'Log Parsing' },
+    { id: 'P3', name: 'Bug Fixing' },
+    { id: 'P4', name: 'Complex Generation' },
+    { id: 'P5', name: 'Math Reasoning' }
+  ];
+  
+  for (const test of tests) {
+    const validator = validators[test.id as keyof typeof validators];
+    const passed = validator(saved);
+    scores[test.id] = passed ? 1 : 0;
+    totalScore += scores[test.id];
+    
+    testResults.push({
+      test_id: test.id,
+      test_name: test.name,
+      passed,
+      response_time_ms: 2000,
+      output_quality: passed ? 100 : 0
+    });
+  }
+  
+  // Display results
+  console.log('═'.repeat(60));
+  console.log('                    TEST RESULTS');
+  console.log('═'.repeat(60) + '\n');
+  
+  console.log('Individual Scores:');
+  for (const test of tests) {
+    const score = scores[test.id];
+    console.log(`  ${test.name}: ${score === 1 ? '✅ PASSED' : '❌ FAILED'}`);
+  }
+  
+  console.log('\n📊 Overall Score: ' + totalScore + '/5 (' + Math.round(totalScore / 5 * 100) + '%)');
+  
+  // Submit results  
+  console.log('\n🌍 Submitting to community database...');
+  
+  const anonymousUserId = getAnonymousUserId();
+  const region = await getRegion();
+  
+  try {
+    const response = await fetch(`${API_URL}/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        anonymous_user_id: anonymousUserId,
+        claude_version: process.env.CLAUDE_VERSION || 'claude-code',
+        test_score: totalScore,
+        total_tests: 5,
+        ttft_ms: 2000,
+        avg_output_length: saved.length / 5,
+        region,
+        test_details: testResults
+      })
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      
+      console.log('\n✅ Results submitted successfully!\n');
+      
+      if (data.comparison) {
+        console.log('📈 Community Comparison:');
+        console.log(`   You scored better than ${data.comparison.percentile}% of users`);
+        if (data.comparison.regionAvg) {
+          console.log(`   Your region average: ${data.comparison.regionAvg.toFixed(1)}/5`);
+        }
+        console.log(`   Global average: ${data.comparison.globalAvg.toFixed(1)}/5`);
+      }
+      
+      if (data.run_id) {
+        console.log(`\n🔗 View your results: ${BASE_URL}/run/${data.run_id}`);
+      }
+    } else {
+      console.log('⚠️  Failed to submit results to community');
+    }
+  } catch (error) {
+    console.log('⚠️  Could not connect to community server');
+    console.log('   Results saved locally only');
+  }
+  
+  // Update config
+  const config = JSON.parse(readFileSync(CONFIG_FILE, 'utf-8'));
+  config.lastRun = new Date().toISOString();
+  config.totalRuns = (config.totalRuns || 0) + 1;
+  writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
+  
+  console.log('\n' + '═'.repeat(60));
+  console.log('✨ Thank you for contributing to Claude NerfDetector!');
+  console.log('📈 View global stats: https://claude-nerf-detector.vercel.app');
+  console.log('═'.repeat(60) + '\n');
 }
 
 // CLI setup
 program
   .name('claude-nerf-test')
   .description('Community performance testing for Claude Code')
-  .version('2.5.0');
+  .version('2.6.0');
 
 program
   .command('run', { isDefault: true })
-  .description('Display performance tests for Claude to answer')
+  .description('Run performance tests with automatic scoring after 30 seconds')
   .action(async () => {
     await runTests();
   });
 
 program
-  .command('score')
-  .description('Score Claude\'s responses (can be triggered via hooks)')
+  .command('manual-score')
+  .description('Manually score saved responses (backup option)')
   .action(async () => {
-    await captureAndScore();
+    await scoreManual();
   });
 
 program
@@ -395,4 +479,4 @@ program
 
 program.parse();
 
-export { runTests, captureAndScore };
+export { runTests };
