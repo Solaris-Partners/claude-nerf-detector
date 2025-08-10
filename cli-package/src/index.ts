@@ -176,7 +176,6 @@ async function scoreResponses() {
   // Capture Claude's response that just happened
   const startCapture = Date.now();
   let capturedResponses = '';
-  let captureCount = 0;
   
   // Give Claude a moment to finish outputting
   await new Promise(resolve => setTimeout(resolve, 500));
