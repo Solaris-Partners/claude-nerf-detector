@@ -1,0 +1,12 @@
+{
+  "description": "Claude NerfDetector hooks configuration",
+  "hooks": {
+    "user-prompt-submit": {
+      "description": "Automatically score test results after Claude responds",
+      "command": "npx claude-nerf-test score",
+      "when": "after",
+      "delay": 1000
+    }
+  },
+  "installation": "Copy this to ~/.claude/hooks.json or your project's .claude/hooks.json"
+}

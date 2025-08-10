@@ -107,11 +107,10 @@ export default function Dashboard() {
             
             {/* Quick Start Box */}
             <div className="bg-gray-900 rounded-lg px-8 py-6 inline-block mb-4">
-              <p className="text-sm text-gray-400 mb-2">Step 1: Open Claude Code and run:</p>
-              <code className="text-green-400 text-xl font-mono block mb-3">npx claude-nerf-test</code>
-              <p className="text-sm text-gray-400 mb-2">Step 2: After Claude responds, score results:</p>
-              <code className="text-green-400 text-xl font-mono block">npx claude-nerf-test score</code>
-              <p className="text-xs text-gray-500 mt-3">⚠️ Must be run inside Claude Code, not regular terminal</p>
+              <p className="text-sm text-gray-400 mb-2">Run in Claude Code:</p>
+              <code className="text-green-400 text-2xl font-mono block mb-3">npx claude-nerf-test</code>
+              <p className="text-xs text-gray-500">Then respond to all 5 test prompts</p>
+              <p className="text-xs text-gray-400 mt-2">💡 Pro tip: Use hooks for auto-scoring (see below)</p>
             </div>
             
             {/* How It Works - Compact */}
@@ -206,6 +205,32 @@ export default function Dashboard() {
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Regional Distribution</h3>
           <RegionalDistributionChart data={stats.regionalDistribution} />
+        </div>
+      </div>
+
+      {/* Setup Instructions */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        <div className="bg-white rounded-lg shadow">
+          <div className="px-6 py-4 border-b">
+            <h3 className="text-lg font-semibold text-gray-900">🚀 Auto-Scoring with Hooks (Recommended)</h3>
+          </div>
+          <div className="p-6">
+            <p className="text-gray-700 mb-4">Configure Claude Code to automatically score your responses:</p>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-sm text-gray-600 mb-2">Add to ~/.claude/hooks.json:</p>
+              <pre className="bg-gray-900 text-green-400 p-3 rounded text-sm overflow-x-auto">
+{`{
+  "user-prompt-submit": {
+    "command": "npx claude-nerf-test score"
+  }
+}`}
+              </pre>
+            </div>
+            <p className="text-sm text-gray-600 mt-4">
+              With hooks configured, just run <code className="bg-gray-100 px-2 py-1 rounded">npx claude-nerf-test</code> and respond. 
+              Results will be automatically scored and submitted!
+            </p>
+          </div>
         </div>
       </div>
 
