@@ -2,19 +2,32 @@
 
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts';
+import dynamic from 'next/dynamic';
+
+// Dynamic import for recharts to avoid SSR issues
+const PerformanceTrendChart = dynamic(
+  () => import('@/components/Charts').then(mod => mod.PerformanceTrendChart),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-[300px] text-gray-500">
+        Loading chart...
+      </div>
+    )
+  }
+);
+
+const RegionalDistributionChart = dynamic(
+  () => import('@/components/Charts').then(mod => mod.RegionalDistributionChart),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-[300px] text-gray-500">
+        Loading chart...
+      </div>
+    )
+  }
+);
 
 interface GlobalStats {
   totalRuns: number;
@@ -82,8 +95,6 @@ export default function Dashboard() {
       </div>
     );
   }
-
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -157,65 +168,13 @@ export default function Dashboard() {
         {/* Performance Trend */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Performance Trend</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={stats.trends || []}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="timestamp" 
-                tickFormatter={(value) => value ? format(new Date(value), 'MMM dd') : ''}
-              />
-              <YAxis />
-              <Tooltip 
-                labelFormatter={(value) => value ? format(new Date(value as string), 'MMM dd HH:mm') : ''}
-              />
-              <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="avgScore" 
-                stroke="#0088FE" 
-                name="Avg Score"
-                strokeWidth={2}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="totalRuns" 
-                stroke="#00C49F" 
-                name="Total Runs"
-                strokeWidth={2}
-                yAxisId="right"
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <PerformanceTrendChart data={stats.trends} />
         </div>
 
         {/* Regional Distribution */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Regional Distribution</h3>
-          {stats.regionalDistribution && stats.regionalDistribution.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={stats.regionalDistribution.slice(0, 5)}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ region, percentage }) => `${region} (${percentage.toFixed(0)}%)`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="count"
-                >
-                  {stats.regionalDistribution.slice(0, 5).map((_entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex items-center justify-center h-[300px] text-gray-500">
-              No regional data available yet
-            </div>
-          )}
+          <RegionalDistributionChart data={stats.regionalDistribution} />
         </div>
       </div>
 
