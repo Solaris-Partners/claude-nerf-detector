@@ -13,8 +13,8 @@ program
   .description('Run performance tests')
   .option('--local', 'Run tests locally without submitting to community')
   .option('--verbose', 'Show detailed output')
-  .action((options) => {
-    runTests(!options.local, options.verbose);
+  .action(async (options) => {
+    await runTests(!options.local);
   });
 
 program

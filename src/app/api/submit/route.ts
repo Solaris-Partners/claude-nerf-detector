@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase, TestRun, TestDetail } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { z } from 'zod';
 
 // Validation schema

@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import { v4 as uuidv4 } from 'uuid';
 import { createHash } from 'crypto';
 import { homedir, hostname, platform } from 'os';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
@@ -41,7 +40,6 @@ const TEST_SUITE = [
     validate: (response: string) => {
       const hasCorrectComparison = response.includes('===') || response.includes('==');
       const hasDecrementOrMinus = response.includes('n - 1') || response.includes('n-1') || response.includes('--n');
-      const hasNegativeCheck = response.includes('< 0') || response.includes('<= -1');
       return hasCorrectComparison && hasDecrementOrMinus;
     }
   },
@@ -255,8 +253,12 @@ async function simulateClaudeResponse(test: any): Promise<string> {
   return responses[test.id] || 'Failed to generate response';
 }
 
-// CLI entry point
-const args = process.argv.slice(2);
-const isLocal = args.includes('--local');
+// Export for use in index.ts
+export { runTests };
 
-runTests(!isLocal).catch(console.error);
+// CLI entry point when run directly
+if (require.main === module) {
+  const args = process.argv.slice(2);
+  const isLocal = args.includes('--local');
+  runTests(!isLocal).catch(console.error);
+}

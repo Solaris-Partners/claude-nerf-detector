@@ -23,7 +23,7 @@ export async function GET(
     }
 
     // Fetch test details
-    const { data: testDetails, error: detailsError } = await supabase
+    const { data: testDetails } = await supabase
       .from('test_details')
       .select('*')
       .eq('run_id', id)
