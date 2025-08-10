@@ -56,12 +56,12 @@ async function getRegion(): Promise<string | null> {
 }
 
 // Save responses to file for hook to process
-function saveResponses(responses: string) {
-  if (!existsSync(CONFIG_DIR)) {
-    mkdirSync(CONFIG_DIR, { recursive: true });
-  }
-  writeFileSync(RESPONSE_FILE, responses);
-}
+// function saveResponses(responses: string) {
+//   if (!existsSync(CONFIG_DIR)) {
+//     mkdirSync(CONFIG_DIR, { recursive: true });
+//   }
+//   writeFileSync(RESPONSE_FILE, responses);
+// }
 
 // Load responses from file
 function loadResponses(): string | null {

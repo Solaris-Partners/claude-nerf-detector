@@ -216,8 +216,19 @@ export default function Dashboard() {
           </div>
           <div className="p-6">
             <p className="text-gray-700 mb-4">Configure Claude Code to automatically score your responses:</p>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-sm text-gray-600 mb-2">Add to ~/.claude/hooks.json:</p>
+            
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
+              <p className="text-sm font-semibold text-blue-900 mb-2">Step 1: Create hooks configuration file</p>
+              <p className="text-sm text-blue-800">
+                In your terminal (outside Claude Code), create the file:
+              </p>
+              <code className="block bg-white px-3 py-2 rounded mt-2 text-sm text-gray-800">
+                mkdir -p ~/.claude && nano ~/.claude/hooks.json
+              </code>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-4 mb-4">
+              <p className="text-sm font-semibold text-gray-700 mb-2">Step 2: Add this configuration:</p>
               <pre className="bg-gray-900 text-green-400 p-3 rounded text-sm overflow-x-auto">
 {`{
   "user-prompt-submit": {
@@ -226,10 +237,19 @@ export default function Dashboard() {
 }`}
               </pre>
             </div>
-            <p className="text-sm text-gray-600 mt-4">
-              With hooks configured, just run <code className="bg-gray-100 px-2 py-1 rounded">npx claude-nerf-test</code> and respond. 
-              Results will be automatically scored and submitted!
-            </p>
+
+            <div className="bg-green-50 border-l-4 border-green-400 p-4">
+              <p className="text-sm font-semibold text-green-900 mb-2">Step 3: Run the test in Claude Code</p>
+              <p className="text-sm text-green-800 mb-2">
+                With hooks configured, just run:
+              </p>
+              <code className="block bg-white px-3 py-2 rounded text-sm text-gray-800">
+                npx claude-nerf-test
+              </code>
+              <p className="text-xs text-green-700 mt-2">
+                After you respond to all prompts, results will be automatically scored!
+              </p>
+            </div>
           </div>
         </div>
       </div>
