@@ -5,7 +5,6 @@ import { homedir, hostname, platform } from 'os';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { program } from 'commander';
-import * as readline from 'readline';
 
 // Configuration
 const API_URL = process.env.NERF_API_URL || 'https://claude-nerf-detector.vercel.app/api';
