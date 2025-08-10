@@ -107,19 +107,20 @@ export default function Dashboard() {
             
             {/* Quick Start Box */}
             <div className="bg-gray-900 rounded-lg px-8 py-6 inline-block mb-4">
-              <p className="text-sm text-gray-400 mb-2">Step 1: Open Claude Code</p>
-              <p className="text-sm text-gray-400 mb-3">Step 2: Run this command:</p>
-              <code className="text-green-400 text-2xl font-mono block">npx claude-nerf-test</code>
+              <p className="text-sm text-gray-400 mb-2">Step 1: Open Claude Code and run:</p>
+              <code className="text-green-400 text-xl font-mono block mb-3">npx claude-nerf-test</code>
+              <p className="text-sm text-gray-400 mb-2">Step 2: After Claude responds, score results:</p>
+              <code className="text-green-400 text-xl font-mono block">npx claude-nerf-test score</code>
               <p className="text-xs text-gray-500 mt-3">⚠️ Must be run inside Claude Code, not regular terminal</p>
             </div>
             
             {/* How It Works - Compact */}
             <div className="flex justify-center items-center gap-4 text-xs text-blue-200 mb-2">
-              <span>1. Run in Claude Code</span>
+              <span>1. Run test prompts</span>
               <span className="text-blue-300">→</span>
-              <span>2. Claude answers 5 tests</span>
+              <span>2. Claude responds</span>
               <span className="text-blue-300">→</span>
-              <span>3. Auto-scored & submitted</span>
+              <span>3. Score & submit</span>
             </div>
             
             <p className="text-sm text-blue-200">Join {stats.uniqueUsers || 0} users tracking Claude's performance</p>

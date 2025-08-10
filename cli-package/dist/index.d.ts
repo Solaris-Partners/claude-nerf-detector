@@ -1,4 +1,5 @@
 #!/usr/bin/env node
 declare function runTests(submitResults?: boolean): Promise<void>;
-export { runTests };
+declare function scoreTests(): Promise<void>;
+export { runTests, scoreTests };
 //# sourceMappingURL=index.d.ts.map

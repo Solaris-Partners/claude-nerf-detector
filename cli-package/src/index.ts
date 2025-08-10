@@ -54,265 +54,191 @@ async function getRegion(): Promise<string | null> {
   }
 }
 
-// Capture output between markers
-let capturedOutput = '';
-let capturing = false;
-
-// Override console.log to capture Claude's responses
-const originalLog = console.log;
-console.log = function(...args: any[]) {
-  const output = args.join(' ');
-  
-  if (output.includes('NERF_TEST_START_CAPTURE_')) {
-    capturing = true;
-    capturedOutput = '';
-    return; // Don't print the marker
-  }
-  
-  if (output.includes('NERF_TEST_END_CAPTURE')) {
-    capturing = false;
-    return; // Don't print the marker
-  }
-  
-  if (capturing) {
-    capturedOutput += output + '\n';
-  }
-  
-  // Still print to console
-  originalLog.apply(console, args);
-};
-
-// Test validators
-const validators = {
-  P1: (response: string) => {
-    const hasHeap = /heap|Heap/.test(response);
-    const hasKth = /kth|largest/.test(response);
-    const hasEdgeCases = /if.*\(/.test(response) && (/length|k\s*>|k\s*<=\s*0/.test(response));
-    return hasHeap && hasKth && hasEdgeCases;
-  },
-  P2: (response: string) => {
-    try {
-      const jsonMatch = response.match(/\{[\s\S]*?\}/);
-      if (!jsonMatch) return false;
-      const parsed = JSON.parse(jsonMatch[0]);
-      return !!(parsed.timestamp && parsed.level && parsed.service && parsed.user_id);
-    } catch {
-      return false;
-    }
-  },
-  P3: (response: string) => {
-    const hasCorrectComparison = /===|==/.test(response) && !/\(n\s*=\s*0\)/.test(response);
-    const hasDecrement = /n\s*-\s*1|n-1|--n/.test(response);
-    return hasCorrectComparison && hasDecrement;
-  },
-  P4: (response: string) => {
-    const commandCount = (response.match(/\.command\(/g) || []).length;
-    const hasErrorHandling = /try|catch|error|Error/.test(response);
-    const hasHelp = /help|--help/.test(response);
-    return commandCount >= 5 && hasErrorHandling && hasHelp;
-  },
-  P5: (response: string) => {
-    const numbers = response.match(/\d+\.?\d*/g) || [];
-    return numbers.some(n => {
-      const val = parseFloat(n);
-      return val >= 54 && val <= 55;
-    });
-  }
-};
-
 // Main test execution
 async function runTests(submitResults: boolean = true) {
-  // Immediate feedback
-  console.log('\n🚀 Claude NerfDetector is starting...\n');
-  console.log('✅ Test runner loaded successfully');
-  console.log('✅ Claude Code detected');
-  console.log('✅ Starting performance evaluation\n');
-  
+  console.log('\n🚀 Claude NerfDetector Performance Test\n');
   console.log('━'.repeat(60));
-  console.log('                    IMPORTANT NOTICE');
+  console.log('This test will evaluate Claude Code\'s performance on 5 tasks.');
+  console.log('After Claude completes all responses, you will need to manually');
+  console.log('score each test based on the criteria shown.');
   console.log('━'.repeat(60));
-  console.log('This test will:');
-  console.log('  1. Show 5 test prompts that Claude will answer');
-  console.log('  2. Automatically score Claude\'s responses');
-  console.log('  3. Submit results anonymously to the community');
-  console.log('');
-  console.log('Please let Claude complete each response before scrolling.');
-  console.log('━'.repeat(60));
-  console.log('');
+  console.log('\nStarting in 3 seconds...\n');
   
-  // Ask Claude to acknowledge before starting
-  console.log('NERF_TEST_START_CAPTURE_ACK');
-  console.log('📢 CLAUDE: Please acknowledge that you\'re ready to begin the performance test by saying "Ready to begin NerfDetector test" and then the tests will start automatically.\n');
-  console.log('NERF_TEST_END_CAPTURE');
-  
-  // Wait for Claude's acknowledgment
   await new Promise(resolve => setTimeout(resolve, 3000));
+
+  // Test prompts
+  const tests = [
+    {
+      id: 'P1',
+      name: 'Algorithm Implementation',
+      prompt: 'Write a function to find the kth largest element in an array using a min-heap approach. Include edge case handling.',
+      scoring: 'Score 1 if: Uses heap/Heap, mentions kth/largest, has edge case checks'
+    },
+    {
+      id: 'P2', 
+      name: 'Log Parsing',
+      prompt: 'Parse this log line into JSON: "2024-01-15 08:23:45.123 [ERROR] UserService - Failed to authenticate user_id=12345 reason=invalid_token"',
+      scoring: 'Score 1 if: Returns valid JSON with timestamp, level, service, user_id fields'
+    },
+    {
+      id: 'P3',
+      name: 'Bug Fixing',
+      prompt: 'Fix all bugs in this factorial function:\n```javascript\nfunction factorial(n) {\n  if (n = 0) return 1;\n  return n * factorial(n);\n}\n```',
+      scoring: 'Score 1 if: Uses === for comparison and n-1 for recursion'
+    },
+    {
+      id: 'P4',
+      name: 'Complex Generation',
+      prompt: 'Generate a complete CLI application structure with 6 subcommands (init, build, test, deploy, clean, help) using commander.js or similar. Include proper error handling.',
+      scoring: 'Score 1 if: Has 5+ commands, includes error handling, has help command'
+    },
+    {
+      id: 'P5',
+      name: 'Math Reasoning',
+      prompt: 'A train travels 120 miles in 2 hours, then stops for 30 minutes, then travels another 180 miles in 3 hours. What is the average speed for the entire journey including the stop?',
+      scoring: 'Score 1 if: Answer is between 54-55 mph'
+    }
+  ];
+
+  // Display all test prompts
+  console.log('═'.repeat(60));
+  console.log('CLAUDE: Please respond to each of the following 5 test prompts.');
+  console.log('After you complete ALL responses, the scoring will begin.');
+  console.log('═'.repeat(60));
+  console.log();
+
+  for (let i = 0; i < tests.length; i++) {
+    const test = tests[i];
+    console.log(`TEST ${i + 1}/5: ${test.name}`);
+    console.log('-'.repeat(40));
+    console.log(`📝 PROMPT: ${test.prompt}`);
+    console.log();
+  }
+
+  console.log('═'.repeat(60));
+  console.log('⏳ Please complete all 5 responses above.');
+  console.log('When done, run: npx claude-nerf-test score');
+  console.log('═'.repeat(60));
+  console.log();
   
-  // Check if Claude acknowledged
-  if (!capturedOutput.toLowerCase().includes('ready') && !capturedOutput.toLowerCase().includes('begin')) {
-    console.log('\n⚠️  Waiting for Claude to acknowledge...\n');
-    await new Promise(resolve => setTimeout(resolve, 3000));
+  // Store test info for scoring phase
+  const testInfo = {
+    timestamp: Date.now(),
+    tests: tests
+  };
+  writeFileSync(join(CONFIG_DIR, 'current-test.json'), JSON.stringify(testInfo, null, 2));
+}
+
+// Score tests
+async function scoreTests() {
+  const testInfoPath = join(CONFIG_DIR, 'current-test.json');
+  
+  if (!existsSync(testInfoPath)) {
+    console.log('❌ No active test found. Please run "npx claude-nerf-test" first.');
+    return;
   }
   
-  console.log('\n✅ Starting tests now!\n');
-  await new Promise(resolve => setTimeout(resolve, 2000));
-
-  const testResults: any[] = [];
-  let totalScore = 0;
-  const startTime = Date.now();
-  const responses: Record<string, string> = {};
-
-  // Test 1
-  console.log('\n' + '═'.repeat(60));
-  console.log('TEST 1/5: Algorithm Implementation');
-  console.log('═'.repeat(60) + '\n');
-  capturedOutput = ''; // Reset before capturing
-  console.log('NERF_TEST_START_CAPTURE_P1');
-  console.log('📝 PROMPT: Write a function to find the kth largest element in an array using a min-heap approach. Include edge case handling.\n');
-  console.log('NERF_TEST_END_CAPTURE');
+  const testInfo = JSON.parse(readFileSync(testInfoPath, 'utf-8'));
+  const tests = testInfo.tests;
   
-  // Wait for Claude's response
-  console.log('\n⏳ Waiting for Claude to complete response...');
-  await new Promise(resolve => setTimeout(resolve, 4000));
-  responses.P1 = capturedOutput;
+  console.log('\n📊 Test Scoring\n');
+  console.log('Please score each test based on Claude\'s responses above.');
+  console.log('Enter 1 for passed, 0 for failed.\n');
   
-  // Test 2
-  console.log('\n' + '═'.repeat(60));
-  console.log('TEST 2/5: Log Parsing');
-  console.log('═'.repeat(60) + '\n');
-  capturedOutput = ''; // Reset before capturing
-  console.log('NERF_TEST_START_CAPTURE_P2');
-  console.log('📝 PROMPT: Parse this log line into JSON: "2024-01-15 08:23:45.123 [ERROR] UserService - Failed to authenticate user_id=12345 reason=invalid_token"\n');
-  console.log('NERF_TEST_END_CAPTURE');
+  const readline = await import('readline');
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
   
-  await new Promise(resolve => setTimeout(resolve, 4000));
-  responses.P2 = capturedOutput;
-
-  // Test 3
-  console.log('\n' + '═'.repeat(60));
-  console.log('TEST 3/5: Bug Fixing');
-  console.log('═'.repeat(60) + '\n');
-  capturedOutput = ''; // Reset before capturing
-  console.log('NERF_TEST_START_CAPTURE_P3');
-  console.log(`📝 PROMPT: Fix all bugs in this factorial function:
-\`\`\`javascript
-function factorial(n) {
-  if (n = 0) return 1;
-  return n * factorial(n);
-}
-\`\`\`\n`);
-  console.log('NERF_TEST_END_CAPTURE');
-  
-  await new Promise(resolve => setTimeout(resolve, 4000));
-  responses.P3 = capturedOutput;
-
-  // Test 4
-  console.log('\n' + '═'.repeat(60));
-  console.log('TEST 4/5: Complex Generation');
-  console.log('═'.repeat(60) + '\n');
-  capturedOutput = ''; // Reset before capturing
-  console.log('NERF_TEST_START_CAPTURE_P4');
-  console.log('📝 PROMPT: Generate a complete CLI application structure with 6 subcommands (init, build, test, deploy, clean, help) using commander.js or similar. Include proper error handling.\n');
-  console.log('NERF_TEST_END_CAPTURE');
-  
-  await new Promise(resolve => setTimeout(resolve, 4000));
-  responses.P4 = capturedOutput;
-
-  // Test 5
-  console.log('\n' + '═'.repeat(60));
-  console.log('TEST 5/5: Math Reasoning');
-  console.log('═'.repeat(60) + '\n');
-  capturedOutput = ''; // Reset before capturing
-  console.log('NERF_TEST_START_CAPTURE_P5');
-  console.log('📝 PROMPT: A train travels 120 miles in 2 hours, then stops for 30 minutes, then travels another 180 miles in 3 hours. What is the average speed for the entire journey including the stop?\n');
-  console.log('NERF_TEST_END_CAPTURE');
-  
-  await new Promise(resolve => setTimeout(resolve, 4000));
-  responses.P5 = capturedOutput;
-
-  // Wait a bit more for all responses to complete
-  console.log('\n⏳ Analyzing Claude\'s responses...\n');
-  await new Promise(resolve => setTimeout(resolve, 5000));
-
-  // Auto-score responses
   const scores: Record<string, number> = {};
-  for (const [testId, response] of Object.entries(responses)) {
-    const validator = validators[testId as keyof typeof validators];
-    scores[testId] = validator(response) ? 1 : 0;
-    totalScore += scores[testId];
+  const testResults: any[] = [];
+  
+  for (const test of tests) {
+    console.log(`\n${test.name}:`);
+    console.log(`Criteria: ${test.scoring}`);
     
+    const score = await new Promise<number>((resolve) => {
+      rl.question(`Score (0 or 1): `, (answer) => {
+        const s = parseInt(answer);
+        resolve(s === 1 ? 1 : 0);
+      });
+    });
+    
+    scores[test.id] = score;
     testResults.push({
-      test_id: testId,
-      test_name: getTestName(testId),
-      passed: scores[testId] === 1,
-      response_time_ms: 2000, // Rough estimate
-      output_quality: scores[testId] * 100
+      test_id: test.id,
+      test_name: test.name,
+      passed: score === 1,
+      response_time_ms: 2000,
+      output_quality: score * 100
     });
   }
-
-  const totalTime = Date.now() - startTime;
-
+  
+  rl.close();
+  
+  const totalScore = Object.values(scores).reduce((a, b) => a + b, 0);
+  const totalTime = Date.now() - testInfo.timestamp;
+  
   // Display results
   console.log('\n' + '═'.repeat(60));
   console.log('                    TEST RESULTS');
   console.log('═'.repeat(60) + '\n');
   
   console.log('Individual Scores:');
-  console.log(`  P1 (Algorithm):    ${scores.P1 === 1 ? '✅ PASSED' : '❌ FAILED'}`);
-  console.log(`  P2 (Log Parsing):  ${scores.P2 === 1 ? '✅ PASSED' : '❌ FAILED'}`);
-  console.log(`  P3 (Bug Fixing):   ${scores.P3 === 1 ? '✅ PASSED' : '❌ FAILED'}`);
-  console.log(`  P4 (CLI Gen):      ${scores.P4 === 1 ? '✅ PASSED' : '❌ FAILED'}`);
-  console.log(`  P5 (Math):         ${scores.P5 === 1 ? '✅ PASSED' : '❌ FAILED'}`);
+  for (const test of tests) {
+    const score = scores[test.id];
+    console.log(`  ${test.id} (${test.name}): ${score === 1 ? '✅ PASSED' : '❌ FAILED'}`);
+  }
   
   console.log('\n📊 Overall Score: ' + totalScore + '/5 (' + Math.round(totalScore / 5 * 100) + '%)');
   console.log(`⏱️  Total Time: ${(totalTime / 1000).toFixed(1)}s`);
-
-  if (submitResults) {
-    console.log('\n🌍 Submitting to community database...');
+  
+  // Submit results
+  console.log('\n🌍 Submitting to community database...');
+  
+  const anonymousUserId = getAnonymousUserId();
+  const region = await getRegion();
+  
+  try {
+    const response = await fetch(`${API_URL}/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        anonymous_user_id: anonymousUserId,
+        claude_version: process.env.CLAUDE_VERSION || 'claude-code',
+        test_score: totalScore,
+        total_tests: 5,
+        ttft_ms: Math.round(totalTime / 5),
+        avg_output_length: 500,
+        region,
+        test_details: testResults
+      })
+    });
     
-    const anonymousUserId = getAnonymousUserId();
-    const region = await getRegion();
-    
-    try {
-      const response = await fetch(`${API_URL}/submit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          anonymous_user_id: anonymousUserId,
-          claude_version: process.env.CLAUDE_VERSION || 'claude-code',
-          test_score: totalScore,
-          total_tests: 5,
-          ttft_ms: Math.round(totalTime / 5),
-          avg_output_length: 500,
-          region,
-          test_details: testResults
-        })
-      });
+    if (response.ok) {
+      const data = await response.json();
       
-      if (response.ok) {
-        const data = await response.json();
-        
-        console.log('\n✅ Results submitted successfully!\n');
-        
-        if (data.comparison) {
-          console.log('📈 Community Comparison:');
-          console.log(`   You scored better than ${data.comparison.percentile}% of users`);
-          if (data.comparison.regionAvg) {
-            console.log(`   Your region average: ${data.comparison.regionAvg.toFixed(1)}/5`);
-          }
-          console.log(`   Global average: ${data.comparison.globalAvg.toFixed(1)}/5`);
+      console.log('\n✅ Results submitted successfully!\n');
+      
+      if (data.comparison) {
+        console.log('📈 Community Comparison:');
+        console.log(`   You scored better than ${data.comparison.percentile}% of users`);
+        if (data.comparison.regionAvg) {
+          console.log(`   Your region average: ${data.comparison.regionAvg.toFixed(1)}/5`);
         }
-        
-        if (data.run_id) {
-          console.log(`\n🔗 View your results: ${BASE_URL}/run/${data.run_id}`);
-        }
-      } else {
-        console.log('⚠️  Failed to submit results to community');
+        console.log(`   Global average: ${data.comparison.globalAvg.toFixed(1)}/5`);
       }
-    } catch (error) {
-      console.log('⚠️  Could not connect to community server');
-      console.log('   Results saved locally only');
+      
+      if (data.run_id) {
+        console.log(`\n🔗 View your results: ${BASE_URL}/run/${data.run_id}`);
+      }
+    } else {
+      console.log('⚠️  Failed to submit results to community');
     }
+  } catch (error) {
+    console.log('⚠️  Could not connect to community server');
+    console.log('   Results saved locally only');
   }
   
   // Update config
@@ -321,31 +247,23 @@ function factorial(n) {
   config.totalRuns = (config.totalRuns || 0) + 1;
   writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
   
+  // Clean up test file
+  if (existsSync(testInfoPath)) {
+    const fs = await import('fs');
+    fs.unlinkSync(testInfoPath);
+  }
+  
   console.log('\n' + '═'.repeat(60));
   console.log('✨ Thank you for contributing to Claude NerfDetector!');
   console.log('📈 View global stats: https://claude-nerf-detector.vercel.app');
   console.log('═'.repeat(60) + '\n');
-  
-  // Ensure the process exits cleanly
-  process.exit(0);
-}
-
-function getTestName(testId: string): string {
-  const names: Record<string, string> = {
-    P1: 'Algorithm Implementation',
-    P2: 'Log Parsing',
-    P3: 'Bug Fixing',
-    P4: 'Complex Generation',
-    P5: 'Math Reasoning'
-  };
-  return names[testId] || testId;
 }
 
 // CLI setup
 program
   .name('claude-nerf-test')
   .description('Community performance testing for Claude Code')
-  .version('2.2.0');
+  .version('2.3.0');
 
 program
   .command('run', { isDefault: true })
@@ -353,6 +271,13 @@ program
   .option('--local', 'Run tests locally without submitting to community')
   .action(async (options) => {
     await runTests(!options.local);
+  });
+
+program
+  .command('score')
+  .description('Score the completed tests')
+  .action(async () => {
+    await scoreTests();
   });
 
 program
@@ -391,4 +316,4 @@ program
 
 program.parse();
 
-export { runTests };
+export { runTests, scoreTests };
