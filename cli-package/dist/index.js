@@ -126,14 +126,14 @@ async function runTests(submitResults = true) {
     console.log('📢 CLAUDE: Please acknowledge that you\'re ready to begin the performance test by saying "Ready to begin NerfDetector test" and then the tests will start automatically.\n');
     console.log('NERF_TEST_END_CAPTURE');
     // Wait for Claude's acknowledgment
-    await new Promise(resolve => setTimeout(resolve, 2500));
+    await new Promise(resolve => setTimeout(resolve, 3000));
     // Check if Claude acknowledged
     if (!capturedOutput.toLowerCase().includes('ready') && !capturedOutput.toLowerCase().includes('begin')) {
         console.log('\n⚠️  Waiting for Claude to acknowledge...\n');
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 3000));
     }
     console.log('\n✅ Starting tests now!\n');
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 2000));
     const testResults = [];
     let totalScore = 0;
     const startTime = Date.now();
@@ -147,7 +147,8 @@ async function runTests(submitResults = true) {
     console.log('📝 PROMPT: Write a function to find the kth largest element in an array using a min-heap approach. Include edge case handling.\n');
     console.log('NERF_TEST_END_CAPTURE');
     // Wait for Claude's response
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    console.log('\n⏳ Waiting for Claude to complete response...');
+    await new Promise(resolve => setTimeout(resolve, 4000));
     responses.P1 = capturedOutput;
     // Test 2
     console.log('\n' + '═'.repeat(60));
@@ -157,7 +158,7 @@ async function runTests(submitResults = true) {
     console.log('NERF_TEST_START_CAPTURE_P2');
     console.log('📝 PROMPT: Parse this log line into JSON: "2024-01-15 08:23:45.123 [ERROR] UserService - Failed to authenticate user_id=12345 reason=invalid_token"\n');
     console.log('NERF_TEST_END_CAPTURE');
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 4000));
     responses.P2 = capturedOutput;
     // Test 3
     console.log('\n' + '═'.repeat(60));
@@ -173,7 +174,7 @@ function factorial(n) {
 }
 \`\`\`\n`);
     console.log('NERF_TEST_END_CAPTURE');
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 4000));
     responses.P3 = capturedOutput;
     // Test 4
     console.log('\n' + '═'.repeat(60));
@@ -183,7 +184,7 @@ function factorial(n) {
     console.log('NERF_TEST_START_CAPTURE_P4');
     console.log('📝 PROMPT: Generate a complete CLI application structure with 6 subcommands (init, build, test, deploy, clean, help) using commander.js or similar. Include proper error handling.\n');
     console.log('NERF_TEST_END_CAPTURE');
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 4000));
     responses.P4 = capturedOutput;
     // Test 5
     console.log('\n' + '═'.repeat(60));
@@ -193,11 +194,11 @@ function factorial(n) {
     console.log('NERF_TEST_START_CAPTURE_P5');
     console.log('📝 PROMPT: A train travels 120 miles in 2 hours, then stops for 30 minutes, then travels another 180 miles in 3 hours. What is the average speed for the entire journey including the stop?\n');
     console.log('NERF_TEST_END_CAPTURE');
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 4000));
     responses.P5 = capturedOutput;
     // Wait a bit more for all responses to complete
     console.log('\n⏳ Analyzing Claude\'s responses...\n');
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await new Promise(resolve => setTimeout(resolve, 5000));
     // Auto-score responses
     const scores = {};
     for (const [testId, response] of Object.entries(responses)) {
@@ -277,6 +278,8 @@ function factorial(n) {
     console.log('✨ Thank you for contributing to Claude NerfDetector!');
     console.log('📈 View global stats: https://claude-nerf-detector.vercel.app');
     console.log('═'.repeat(60) + '\n');
+    // Ensure the process exits cleanly
+    process.exit(0);
 }
 function getTestName(testId) {
     const names = {
@@ -292,7 +295,7 @@ function getTestName(testId) {
 program
     .name('claude-nerf-test')
     .description('Community performance testing for Claude Code')
-    .version('2.1.1');
+    .version('2.2.0');
 program
     .command('run', { isDefault: true })
     .description('Run performance tests in Claude Code')
