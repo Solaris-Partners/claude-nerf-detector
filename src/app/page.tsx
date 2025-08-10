@@ -37,7 +37,16 @@ interface GlobalStats {
 }
 
 export default function Dashboard() {
-  const [stats, setStats] = useState<GlobalStats | null>(null);
+  const [stats, setStats] = useState<GlobalStats>({
+    totalRuns: 0,
+    uniqueUsers: 0,
+    avgScore: 0,
+    avgTtft: 0,
+    avgTokensPerSecond: 0,
+    avgErrorRate: 0,
+    trends: [],
+    regionalDistribution: []
+  });
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('7d');
   const [lastUpdate, setLastUpdate] = useState(new Date());
@@ -69,16 +78,6 @@ export default function Dashboard() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading performance data...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!stats) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">No data available yet. Be the first to run tests!</p>
         </div>
       </div>
     );
@@ -192,25 +191,31 @@ export default function Dashboard() {
         {/* Regional Distribution */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Regional Distribution</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={stats.regionalDistribution?.slice(0, 5) || []}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ region, percentage }) => region ? `${region} (${percentage?.toFixed(0) || 0}%)` : ''}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="count"
-              >
-                {(stats.regionalDistribution?.slice(0, 5) || []).map((_entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          {stats.regionalDistribution && stats.regionalDistribution.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={stats.regionalDistribution.slice(0, 5)}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ region, percentage }) => `${region} (${percentage.toFixed(0)}%)`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="count"
+                >
+                  {stats.regionalDistribution.slice(0, 5).map((_entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-gray-500">
+              No regional data available yet
+            </div>
+          )}
         </div>
       </div>
 
