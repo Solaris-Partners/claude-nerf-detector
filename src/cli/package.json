@@ -1,0 +1,33 @@
+{
+  "name": "claude-nerf-test",
+  "version": "1.0.0",
+  "description": "Community performance testing for Claude Code",
+  "main": "dist/index.js",
+  "bin": {
+    "claude-nerf-test": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "claude",
+    "performance",
+    "testing",
+    "monitoring",
+    "community"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^12.0.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.9",
+    "typescript": "^5.5.3"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
