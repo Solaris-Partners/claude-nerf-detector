@@ -56,7 +56,6 @@ async function getRegion(): Promise<string | null> {
 // Capture output between markers
 let capturedOutput = '';
 let capturing = false;
-let currentTestId = '';
 
 // Override console.log to capture Claude's responses
 const originalLog = console.log;
@@ -64,12 +63,8 @@ console.log = function(...args: any[]) {
   const output = args.join(' ');
   
   if (output.includes('NERF_TEST_START_CAPTURE_')) {
-    const match = output.match(/NERF_TEST_START_CAPTURE_(\w+)/);
-    if (match) {
-      currentTestId = match[1];
-      capturing = true;
-      capturedOutput = '';
-    }
+    capturing = true;
+    capturedOutput = '';
     return; // Don't print the marker
   }
   
