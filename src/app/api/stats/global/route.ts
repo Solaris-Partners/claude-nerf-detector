@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { supabaseAdmin } from '@/lib/supabase/server';
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get test runs for the period
-    const { data: testRuns, error } = await supabase
+    const { data: testRuns, error } = await supabaseAdmin
       .from('test_runs')
       .select('*')
       .gte('timestamp', startDate.toISOString())

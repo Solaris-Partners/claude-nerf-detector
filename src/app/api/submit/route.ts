@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { supabaseAdmin } from '@/lib/supabase/server';
 import { z } from 'zod';
 
 // Validation schema
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     const data = validation.data;
     
     // Insert test run
-    const { data: testRun, error: runError } = await supabase
+    const { data: testRun, error: runError } = await supabaseAdmin
       .from('test_runs')
       .insert({
         anonymous_user_id: data.anonymous_user_id,
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
         ...detail,
       }));
 
-      const { error: detailError } = await supabase
+      const { error: detailError } = await supabaseAdmin
         .from('test_details')
         .insert(details);
 
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
 async function getComparisonStats(userScore: number, region?: string) {
   try {
     // Get global average
-    const { data: globalStats } = await supabase
+    const { data: globalStats } = await supabaseAdmin
       .from('test_runs')
       .select('test_score, total_tests')
       .gte('timestamp', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
@@ -121,7 +121,7 @@ async function getComparisonStats(userScore: number, region?: string) {
     // Get regional average if region provided
     let regionAvg = null;
     if (region) {
-      const { data: regionStats } = await supabase
+      const { data: regionStats } = await supabaseAdmin
         .from('test_runs')
         .select('test_score, total_tests')
         .eq('region', region)
