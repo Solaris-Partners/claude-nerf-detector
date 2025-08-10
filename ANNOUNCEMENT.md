@@ -18,11 +18,22 @@ NerfDetector is a community-driven tool to track Claude Code's performance over 
 - **Real-time Dashboard**: View global statistics at https://claude-nerf-detector.vercel.app
 
 ### How it Works
-1. Run `npx claude-nerf-test` in Claude Code
-2. Claude will respond to 5 test prompts
-3. Results are anonymously submitted to the community database
-4. You get instant feedback on how your Claude performs vs others
-5. View global trends on the dashboard
+
+**Step 1**: Run this command **inside Claude Code** (not a regular terminal):
+```bash
+npx claude-nerf-test
+```
+
+**Step 2**: Claude will see and respond to 5 test prompts automatically
+
+**Step 3**: After Claude completes all tests, manually score the responses:
+```bash
+npx claude-nerf-test score --p1 [0/1] --p2 [0/1] --p3 [0/1] --p4 [0/1] --p5 [0/1]
+```
+
+**Step 4**: Your scores are submitted anonymously and you see how you compare to the community
+
+⚠️ **Important**: This MUST be run inside Claude Code - it won't work in a regular terminal!
 
 ### Privacy First
 - ✅ Anonymous user IDs (hashed machine ID)
