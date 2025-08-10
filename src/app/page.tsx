@@ -104,11 +104,16 @@ export default function Dashboard() {
           <div className="text-center">
             <h1 className="text-4xl font-bold mb-2">Claude NerfDetector</h1>
             <p className="text-xl text-blue-100 mb-6">Community Performance Monitoring for Claude Code</p>
-            <div className="bg-gray-900 rounded-lg px-6 py-4 inline-block">
-              <p className="text-sm text-gray-400 mb-1">Run tests in Claude Code:</p>
-              <code className="text-green-400 text-xl font-mono">npx claude-nerf-test</code>
+            
+            {/* Quick Start Box */}
+            <div className="bg-gray-900 rounded-lg px-8 py-6 inline-block mb-6">
+              <p className="text-sm text-gray-400 mb-2">Step 1: Open Claude Code</p>
+              <p className="text-sm text-gray-400 mb-3">Step 2: Run this command:</p>
+              <code className="text-green-400 text-2xl font-mono block">npx claude-nerf-test</code>
+              <p className="text-xs text-gray-500 mt-3">⚠️ Must be run inside Claude Code, not regular terminal</p>
             </div>
-            <p className="text-sm text-blue-200 mt-4">Join {stats.uniqueUsers || 0} users tracking Claude's performance</p>
+            
+            <p className="text-sm text-blue-200">Join {stats.uniqueUsers || 0} users tracking Claude's performance</p>
           </div>
         </div>
       </div>
@@ -175,6 +180,36 @@ export default function Dashboard() {
             subtitle="Tokens per second"
             trend="+15%"
           />
+        </div>
+      </div>
+
+      {/* How It Works Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">How It Works</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center">
+              <div className="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
+                <span className="text-blue-600 font-bold">1</span>
+              </div>
+              <p className="font-medium text-gray-900">Run in Claude Code</p>
+              <p className="text-sm text-gray-600 mt-1">Execute npx claude-nerf-test inside Claude Code (not terminal)</p>
+            </div>
+            <div className="text-center">
+              <div className="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
+                <span className="text-blue-600 font-bold">2</span>
+              </div>
+              <p className="font-medium text-gray-900">Claude Responds</p>
+              <p className="text-sm text-gray-600 mt-1">Claude automatically answers 5 test prompts</p>
+            </div>
+            <div className="text-center">
+              <div className="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
+                <span className="text-blue-600 font-bold">3</span>
+              </div>
+              <p className="font-medium text-gray-900">Auto Submit</p>
+              <p className="text-sm text-gray-600 mt-1">Results are scored and submitted automatically</p>
+            </div>
+          </div>
         </div>
       </div>
 
