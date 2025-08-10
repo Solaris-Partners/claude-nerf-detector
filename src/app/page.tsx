@@ -98,13 +98,28 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Hero Section with NPX Command */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold mb-2">Claude NerfDetector</h1>
+            <p className="text-xl text-blue-100 mb-6">Community Performance Monitoring for Claude Code</p>
+            <div className="bg-gray-900 rounded-lg px-6 py-4 inline-block">
+              <p className="text-sm text-gray-400 mb-1">Run tests in Claude Code:</p>
+              <code className="text-green-400 text-xl font-mono">npx claude-nerf-test</code>
+            </div>
+            <p className="text-sm text-blue-200 mt-4">Join {stats.uniqueUsers || 0} users tracking Claude's performance</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Header with stats */}
       <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Claude NerfDetector</h1>
-              <p className="text-gray-600 mt-1">Community Performance Monitoring</p>
+              <p className="text-sm text-gray-500">Global Statistics</p>
+              <p className="text-lg font-semibold text-gray-900">{stats.totalRuns || 0} tests completed</p>
             </div>
             <div className="text-right">
               <p className="text-sm text-gray-500">Last updated</p>
@@ -184,46 +199,19 @@ export default function Dashboard() {
           <div className="px-6 py-4 border-b">
             <h3 className="text-lg font-semibold text-gray-900">Live Test Feed</h3>
           </div>
-          <div className="divide-y">
-            {/* This would be populated with real-time data via WebSocket */}
-            <TestFeedItem
-              time="2 minutes ago"
-              score={3}
-              region="United States"
-              percentile={68}
-            />
-            <TestFeedItem
-              time="5 minutes ago"
-              score={4}
-              region="Germany"
-              percentile={85}
-            />
-            <TestFeedItem
-              time="8 minutes ago"
-              score={2}
-              region="Japan"
-              percentile={42}
-            />
+          <div className="p-8 text-center text-gray-500">
+            {stats.totalRuns > 0 ? (
+              <p>Real-time feed coming soon</p>
+            ) : (
+              <>
+                <p className="mb-2">No tests yet. Be the first!</p>
+                <code className="bg-gray-100 px-3 py-1 rounded text-sm font-mono">npx claude-nerf-test</code>
+              </>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Call to Action */}
-      <div className="bg-blue-600">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-white mb-4">
-              Join the Community Testing
-            </h2>
-            <p className="text-blue-100 mb-6">
-              Run tests directly in Claude Code and contribute to global performance tracking
-            </p>
-            <code className="bg-gray-900 text-green-400 px-4 py-2 rounded font-mono text-lg">
-              npx claude-nerf-test
-            </code>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
