@@ -159,15 +159,15 @@ export default function Dashboard() {
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Performance Trend</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={stats.trends}>
+            <LineChart data={stats.trends || []}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
                 dataKey="timestamp" 
-                tickFormatter={(value) => format(new Date(value), 'MMM dd')}
+                tickFormatter={(value) => value ? format(new Date(value), 'MMM dd') : ''}
               />
               <YAxis />
               <Tooltip 
-                labelFormatter={(value) => format(new Date(value as string), 'MMM dd HH:mm')}
+                labelFormatter={(value) => value ? format(new Date(value as string), 'MMM dd HH:mm') : ''}
               />
               <Legend />
               <Line 
@@ -195,16 +195,16 @@ export default function Dashboard() {
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={stats.regionalDistribution.slice(0, 5)}
+                data={stats.regionalDistribution?.slice(0, 5) || []}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ region, percentage }) => `${region} (${percentage.toFixed(0)}%)`}
+                label={({ region, percentage }) => region ? `${region} (${percentage?.toFixed(0) || 0}%)` : ''}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="count"
               >
-                {stats.regionalDistribution.slice(0, 5).map((_entry, index) => (
+                {(stats.regionalDistribution?.slice(0, 5) || []).map((_entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
