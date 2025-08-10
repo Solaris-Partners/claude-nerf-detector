@@ -235,20 +235,3 @@ function MetricCard({ title, value, subtitle, trend }: any) {
   );
 }
 
-function TestFeedItem({ time, score, region, percentile }: any) {
-  return (
-    <div className="px-6 py-4 hover:bg-gray-50 transition-colors">
-      <div className="flex justify-between items-center">
-        <div>
-          <p className="text-sm text-gray-500">{time}</p>
-          <p className="font-medium text-gray-900">
-            Score: {score}/5 • Better than {percentile}% of users
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="text-sm text-gray-600">{region}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
