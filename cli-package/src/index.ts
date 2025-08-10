@@ -137,9 +137,24 @@ async function runTests(submitResults: boolean = true) {
   console.log('');
   console.log('Please let Claude complete each response before scrolling.');
   console.log('━'.repeat(60));
-  console.log('\nStarting in 3 seconds...\n');
+  console.log('');
   
-  await new Promise(resolve => setTimeout(resolve, 3000));
+  // Ask Claude to acknowledge before starting
+  console.log('NERF_TEST_START_CAPTURE_ACK');
+  console.log('📢 CLAUDE: Please acknowledge that you\'re ready to begin the performance test by saying "Ready to begin NerfDetector test" and then the tests will start automatically.\n');
+  console.log('NERF_TEST_END_CAPTURE');
+  
+  // Wait for Claude's acknowledgment
+  await new Promise(resolve => setTimeout(resolve, 2500));
+  
+  // Check if Claude acknowledged
+  if (!capturedOutput.toLowerCase().includes('ready') && !capturedOutput.toLowerCase().includes('begin')) {
+    console.log('\n⚠️  Waiting for Claude to acknowledge...\n');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+  }
+  
+  console.log('\n✅ Starting tests now!\n');
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
   const testResults: any[] = [];
   let totalScore = 0;
@@ -150,6 +165,7 @@ async function runTests(submitResults: boolean = true) {
   console.log('\n' + '═'.repeat(60));
   console.log('TEST 1/5: Algorithm Implementation');
   console.log('═'.repeat(60) + '\n');
+  capturedOutput = ''; // Reset before capturing
   console.log('NERF_TEST_START_CAPTURE_P1');
   console.log('📝 PROMPT: Write a function to find the kth largest element in an array using a min-heap approach. Include edge case handling.\n');
   console.log('NERF_TEST_END_CAPTURE');
@@ -162,6 +178,7 @@ async function runTests(submitResults: boolean = true) {
   console.log('\n' + '═'.repeat(60));
   console.log('TEST 2/5: Log Parsing');
   console.log('═'.repeat(60) + '\n');
+  capturedOutput = ''; // Reset before capturing
   console.log('NERF_TEST_START_CAPTURE_P2');
   console.log('📝 PROMPT: Parse this log line into JSON: "2024-01-15 08:23:45.123 [ERROR] UserService - Failed to authenticate user_id=12345 reason=invalid_token"\n');
   console.log('NERF_TEST_END_CAPTURE');
@@ -173,6 +190,7 @@ async function runTests(submitResults: boolean = true) {
   console.log('\n' + '═'.repeat(60));
   console.log('TEST 3/5: Bug Fixing');
   console.log('═'.repeat(60) + '\n');
+  capturedOutput = ''; // Reset before capturing
   console.log('NERF_TEST_START_CAPTURE_P3');
   console.log(`📝 PROMPT: Fix all bugs in this factorial function:
 \`\`\`javascript
@@ -190,6 +208,7 @@ function factorial(n) {
   console.log('\n' + '═'.repeat(60));
   console.log('TEST 4/5: Complex Generation');
   console.log('═'.repeat(60) + '\n');
+  capturedOutput = ''; // Reset before capturing
   console.log('NERF_TEST_START_CAPTURE_P4');
   console.log('📝 PROMPT: Generate a complete CLI application structure with 6 subcommands (init, build, test, deploy, clean, help) using commander.js or similar. Include proper error handling.\n');
   console.log('NERF_TEST_END_CAPTURE');
@@ -201,6 +220,7 @@ function factorial(n) {
   console.log('\n' + '═'.repeat(60));
   console.log('TEST 5/5: Math Reasoning');
   console.log('═'.repeat(60) + '\n');
+  capturedOutput = ''; // Reset before capturing
   console.log('NERF_TEST_START_CAPTURE_P5');
   console.log('📝 PROMPT: A train travels 120 miles in 2 hours, then stops for 30 minutes, then travels another 180 miles in 3 hours. What is the average speed for the entire journey including the stop?\n');
   console.log('NERF_TEST_END_CAPTURE');
@@ -320,7 +340,7 @@ function getTestName(testId: string): string {
 program
   .name('claude-nerf-test')
   .description('Community performance testing for Claude Code')
-  .version('2.0.0');
+  .version('2.1.0');
 
 program
   .command('run', { isDefault: true })
