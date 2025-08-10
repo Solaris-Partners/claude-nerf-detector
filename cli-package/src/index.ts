@@ -8,6 +8,7 @@ import { program } from 'commander';
 
 // Configuration
 const API_URL = process.env.NERF_API_URL || 'https://claude-nerf-detector.vercel.app/api';
+const BASE_URL = 'https://claude-nerf-detector.vercel.app';
 const CONFIG_DIR = join(homedir(), '.claude-nerf');
 const CONFIG_FILE = join(CONFIG_DIR, 'config.json');
 
@@ -301,8 +302,8 @@ function factorial(n) {
           console.log(`   Global average: ${data.comparison.globalAvg.toFixed(1)}/5`);
         }
         
-        if (data.share_url) {
-          console.log(`\n🔗 View your results: ${data.share_url}`);
+        if (data.run_id) {
+          console.log(`\n🔗 View your results: ${BASE_URL}/run/${data.run_id}`);
         }
       } else {
         console.log('⚠️  Failed to submit results to community');
@@ -340,7 +341,7 @@ function getTestName(testId: string): string {
 program
   .name('claude-nerf-test')
   .description('Community performance testing for Claude Code')
-  .version('2.1.0');
+  .version('2.1.1');
 
 program
   .command('run', { isDefault: true })
