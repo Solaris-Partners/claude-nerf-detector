@@ -463,7 +463,7 @@ async function runClaudeTests() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 anonymous_user_id: anonymousUserId,
-                claude_version: 'claude-3.5-sonnet',
+                claude_version: 'claude-code',
                 test_score: Math.round(overallScore / 20), // Convert to 0-5 for backwards compatibility
                 continuous_score: overallScore, // New: 0-100 continuous score
                 total_tests: TESTS.length,
