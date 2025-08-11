@@ -298,9 +298,10 @@ function calculateAverageSpeed() {
   // Score each test
   const solutions = [p1Solution, p2Solution, p3Solution, p4Solution, p5Solution];
   const scoreFunctions = [scoreAlgorithm, scoreLogParsing, scoreBugFix, scoreCLI, scoreMath];
+  const testPrompts = Object.values(TEST_PROMPTS);
   
-  for (let i = 0; i < TEST_PROMPTS.length; i++) {
-    const test = Object.values(TEST_PROMPTS)[i];
+  for (let i = 0; i < testPrompts.length; i++) {
+    const test = testPrompts[i];
     const solution = solutions[i];
     const scoreFunc = scoreFunctions[i];
     const testStart = Date.now();
