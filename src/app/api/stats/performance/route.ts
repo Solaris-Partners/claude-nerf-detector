@@ -152,7 +152,7 @@ export async function GET(request: NextRequest) {
       id: t.id,
       timestamp: t.timestamp,
       score: t.test_score * 20,
-      version: t.claude_version || 'claude-3.5-sonnet',
+      version: t.claude_version || 'claude-code',
       region: t.region || 'Unknown',
     })) || [];
     

@@ -3,8 +3,6 @@ import { createHash } from 'crypto';
 import { homedir, hostname, platform } from 'os';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import { scoreAlgorithm, scoreLogParsing, scoreBugFix, scoreCLI, scoreMath, generateReport } from './scoring-system.js';
 // Configuration
 const API_URL = process.env.NERF_API_URL || 'https://claude-nerf-detector.vercel.app/api';
@@ -509,7 +507,37 @@ async function runClaudeTests() {
                 }
             }
             if (data.run_id) {
-                console.log(`\n🔗 View detailed results: ${BASE_URL}/run/${data.run_id}`);
+                // Enhanced dashboard preview
+                console.log('\n' + '═'.repeat(60));
+                console.log('🌐 VIEW YOUR RESULTS & GLOBAL PERFORMANCE METRICS');
+                console.log('═'.repeat(60));
+                console.log(`\n📊 Your Test: ${BASE_URL}/run/${data.run_id}`);
+                console.log(`🌍 Global Dashboard: ${BASE_URL}\n`);
+                console.log('Your test contributes to:');
+                console.log('  📊 Real-time performance tracking');
+                console.log('  📈 Historical trend analysis');
+                console.log('  🏆 Global leaderboard rankings');
+                console.log('  🔍 Performance degradation detection');
+                // Show performance insights
+                if (data.insights) {
+                    console.log('\n💡 Performance Insights:');
+                    if (data.insights.trending) {
+                        console.log(`  • Claude is trending ${data.insights.trending}`);
+                    }
+                    if (data.insights.testCount) {
+                        console.log(`  • You're test #${data.insights.testCount} today`);
+                    }
+                    if (data.insights.uniqueUsers) {
+                        console.log(`  • Joined by ${data.insights.uniqueUsers} other testers`);
+                    }
+                }
+                console.log('\n🎯 Visit the global dashboard to see:');
+                console.log('  • Live performance heatmap (last 30 days)');
+                console.log('  • How Claude performs vs yesterday/last week/last month');
+                console.log('  • Which tests are getting harder or easier');
+                console.log('  • Live feed of tests from around the world');
+                console.log('  • Your contribution to the community dataset');
+                console.log(`\n👉 ${BASE_URL}`);
             }
         }
         else {
@@ -532,8 +560,6 @@ async function runClaudeTests() {
     console.log('═'.repeat(60) + '\n');
 }
 // Execute if run directly
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 // Check if this file is being run directly
 if (import.meta.url === `file://${process.argv[1]}`) {
     runClaudeTests().catch(console.error);

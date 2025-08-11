@@ -571,9 +571,10 @@ async function runClaudeTests() {
       if (data.run_id) {
         // Enhanced dashboard preview
         console.log('\n' + '═'.repeat(60));
-        console.log('🌐 VIEW YOUR RESULTS ON THE GLOBAL DASHBOARD');
+        console.log('🌐 VIEW YOUR RESULTS & GLOBAL PERFORMANCE METRICS');
         console.log('═'.repeat(60));
-        console.log(`\n🔗 ${BASE_URL}/run/${data.run_id}\n`);
+        console.log(`\n📊 Your Test: ${BASE_URL}/run/${data.run_id}`);
+        console.log(`🌍 Global Dashboard: ${BASE_URL}\n`);
         
         console.log('Your test contributes to:');
         console.log('  📊 Real-time performance tracking');
@@ -595,11 +596,13 @@ async function runClaudeTests() {
           }
         }
         
-        console.log('\n🎯 Visit the dashboard to see:');
+        console.log('\n🎯 Visit the global dashboard to see:');
+        console.log('  • Live performance heatmap (last 30 days)');
         console.log('  • How Claude performs vs yesterday/last week/last month');
         console.log('  • Which tests are getting harder or easier');
         console.log('  • Live feed of tests from around the world');
         console.log('  • Your contribution to the community dataset');
+        console.log(`\n👉 ${BASE_URL}`);
       }
     } else {
       const errorText = await response.text();

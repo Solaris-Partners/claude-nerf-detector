@@ -274,6 +274,12 @@ export default function PerformanceDashboard() {
           </div>
         </div>
 
+        {/* Performance Heatmap - Moved to top */}
+        <div className="bg-black/30 backdrop-blur-sm rounded-xl p-6 border border-white/10 mb-8">
+          <h2 className="text-xl font-semibold text-white mb-4">Performance Heatmap (Last 30 Days)</h2>
+          <PerformanceHeatmap data={stats.timeline} />
+        </div>
+
         {/* Main Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Performance Timeline */}
@@ -299,12 +305,6 @@ export default function PerformanceDashboard() {
             <h2 className="text-xl font-semibold text-white mb-4">Score Distribution Shift</h2>
             <DistributionHistogram data={stats.distribution} />
           </div>
-        </div>
-
-        {/* Performance Heatmap */}
-        <div className="bg-black/30 backdrop-blur-sm rounded-xl p-6 border border-white/10 mb-8">
-          <h2 className="text-xl font-semibold text-white mb-4">Performance Heatmap (Last 30 Days)</h2>
-          <PerformanceHeatmap data={stats.timeline} />
         </div>
 
         {/* Recent Tests Feed */}
