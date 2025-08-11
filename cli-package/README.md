@@ -1,46 +1,38 @@
-# Claude NerfDetector Test Suite
+# Claude NerfDetector
 
-## How it Works
+Community-driven performance monitoring for Claude Code. Test Claude's capabilities and contribute to tracking performance changes over time.
 
-This test suite is designed to run **inside Claude Code** to evaluate Claude's performance on standardized tasks.
+## Quick Start
 
-### Step 1: Run the Test in Claude Code
+Run this command **inside Claude Code**:
 
-In Claude Code, run:
 ```bash
-npx claude-nerf-test
+npx claude-nerf-test claude
 ```
 
 This will:
-1. Display 5 test prompts one by one
-2. Claude will automatically respond to each prompt
-3. After all prompts, you'll manually score Claude's responses
+1. Run 5 standardized tests automatically
+2. Score Claude's performance
+3. Submit results to the community database
+4. Show how Claude compares to other users
 
-### Step 2: Score the Results
+## How It Works
 
-After Claude completes all 5 tests, evaluate the responses and submit scores:
+The `claude` command runs tests where Claude:
+- Programmatically solves each test
+- Validates its own solutions
+- Submits results automatically
+- No manual scoring needed!
 
-```bash
-npx claude-nerf-test score --p1 [0/1] --p2 [0/1] --p3 [0/1] --p4 [0/1] --p5 [0/1]
-```
+## What It Tests
 
-**Scoring Guide:**
-- **P1 (Algorithm)**: Did Claude implement a heap-based solution with edge cases? (1=yes, 0=no)
-- **P2 (Log Parsing)**: Did Claude parse the log into valid JSON with all fields? (1=yes, 0=no)
-- **P3 (Bug Fixing)**: Did Claude fix both bugs (= vs == and missing n-1)? (1=yes, 0=no)
-- **P4 (CLI Generation)**: Did Claude create a CLI with 5+ commands and error handling? (1=yes, 0=no)
-- **P5 (Math)**: Did Claude calculate ~54.5 mph? (1=yes, 0=no)
+- **P1 - Algorithm Implementation**: Complex data structures (heap-based algorithms)
+- **P2 - Log Parsing**: Text processing and JSON generation
+- **P3 - Bug Fixing**: Code analysis and correction
+- **P4 - Complex Generation**: Full CLI application scaffolding
+- **P5 - Math Reasoning**: Multi-step problem solving
 
-Example:
-```bash
-npx claude-nerf-test score --p1 1 --p2 1 --p3 0 --p4 1 --p5 1
-```
-
-### Important Notes
-
-⚠️ **This tool MUST be run inside Claude Code** - it won't work in a regular terminal as it relies on Claude processing the prompts.
-
-The test prompts are intentionally challenging to detect capability changes over time. A typical score is 2-3 out of 5.
+Target score: 3-4 out of 5 (tests are intentionally challenging)
 
 ### Privacy
 

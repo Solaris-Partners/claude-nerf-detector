@@ -358,16 +358,24 @@ async function scoreManual() {
     console.log('📈 View global stats: https://claude-nerf-detector.vercel.app');
     console.log('═'.repeat(60) + '\n');
 }
+// Import Claude runner
+import { runClaudeTests } from './claude-runner.js';
 // CLI setup
 program
     .name('claude-nerf-test')
     .description('Community performance testing for Claude Code')
-    .version('2.6.0');
+    .version('2.7.0');
 program
     .command('run', { isDefault: true })
     .description('Run performance tests with automatic scoring after 30 seconds')
     .action(async () => {
     await runTests();
+});
+program
+    .command('claude')
+    .description('Run tests optimized for Claude (programmatic solving)')
+    .action(async () => {
+    await runClaudeTests();
 });
 program
     .command('manual-score')

@@ -4,79 +4,101 @@ import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import dynamic from 'next/dynamic';
 
-// Dynamic import for recharts to avoid SSR issues
+// Dynamic imports for charts
 const PerformanceTrendChart = dynamic(
-  () => import('@/components/Charts').then(mod => mod.PerformanceTrendChart),
-  { 
-    ssr: false,
-    loading: () => (
-      <div className="flex items-center justify-center h-[300px] text-gray-500">
-        Loading chart...
-      </div>
-    )
-  }
+  () => import('@/components/PerformanceCharts').then(mod => mod.PerformanceTrendChart),
+  { ssr: false }
 );
 
-const RegionalDistributionChart = dynamic(
-  () => import('@/components/Charts').then(mod => mod.RegionalDistributionChart),
-  { 
-    ssr: false,
-    loading: () => (
-      <div className="flex items-center justify-center h-[300px] text-gray-500">
-        Loading chart...
-      </div>
-    )
-  }
+const TestBreakdownChart = dynamic(
+  () => import('@/components/PerformanceCharts').then(mod => mod.TestBreakdownChart),
+  { ssr: false }
 );
 
-interface GlobalStats {
-  totalRuns: number;
-  uniqueUsers: number;
-  avgScore: number;
-  avgTtft: number;
-  avgTokensPerSecond: number;
-  avgErrorRate: number;
-  trends: Array<{
-    timestamp: string;
+const PerformanceHeatmap = dynamic(
+  () => import('@/components/PerformanceCharts').then(mod => mod.PerformanceHeatmap),
+  { ssr: false }
+);
+
+const MovingAverageChart = dynamic(
+  () => import('@/components/PerformanceCharts').then(mod => mod.MovingAverageChart),
+  { ssr: false }
+);
+
+const DistributionHistogram = dynamic(
+  () => import('@/components/PerformanceCharts').then(mod => mod.DistributionHistogram),
+  { ssr: false }
+);
+
+interface PerformanceStats {
+  current: {
     avgScore: number;
-    avgTtft: number;
-    totalRuns: number;
-  }>;
-  regionalDistribution: Array<{
-    region: string;
+    testCount: number;
+    percentile: number;
+    trend: 'up' | 'down' | 'stable';
+    changePercent: number;
+  };
+  historical: {
+    yesterday: number;
+    lastWeek: number;
+    lastMonth: number;
+  };
+  timeline: Array<{
+    date: string;
+    avgScore: number;
+    minScore: number;
+    maxScore: number;
     count: number;
-    percentage: number;
+  }>;
+  testBreakdown: Array<{
+    testId: string;
+    name: string;
+    currentAvg: number;
+    historicalAvg: number;
+    change: number;
+  }>;
+  recentTests: Array<{
+    id: string;
+    timestamp: string;
+    score: number;
+    version: string;
+    region: string;
+  }>;
+  distribution: Array<{
+    range: string;
+    current: number;
+    historical: number;
   }>;
 }
 
-export default function Dashboard() {
-  const [stats, setStats] = useState<GlobalStats>({
-    totalRuns: 0,
-    uniqueUsers: 0,
-    avgScore: 0,
-    avgTtft: 0,
-    avgTokensPerSecond: 0,
-    avgErrorRate: 0,
-    trends: [],
-    regionalDistribution: []
-  });
+export default function PerformanceDashboard() {
+  const [stats, setStats] = useState<PerformanceStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [period, setPeriod] = useState('7d');
-  const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [timeRange, setTimeRange] = useState('7d');
+  const [autoRefresh, setAutoRefresh] = useState(true);
 
   useEffect(() => {
     fetchStats();
-    const interval = setInterval(fetchStats, 30000); // Update every 30 seconds
-    return () => clearInterval(interval);
-  }, [period]);
+    if (autoRefresh) {
+      const interval = setInterval(fetchStats, 15000);
+      return () => clearInterval(interval);
+    }
+  }, [timeRange, autoRefresh]);
 
   async function fetchStats() {
     try {
-      const response = await fetch(`/api/stats/global?period=${period}`);
+      const response = await fetch(`/api/stats/performance?range=${timeRange}`);
+      const data = await response.json();
+      
       if (response.ok) {
-        const data = await response.json();
         setStats(data);
-        setLastUpdate(new Date());
+      } else {
+        // Log the error details for debugging
+        console.error('API returned error:', data);
+        // Don't set stats to null, keep previous data if available
+        if (!stats) {
+          console.error('No cached stats available, API error:', data);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch stats:', error);
@@ -85,218 +107,253 @@ export default function Dashboard() {
     }
   }
 
-  if (loading) {
+  if (loading || !stats) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading performance data...</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 flex items-center justify-center">
+        <div className="text-center text-white">
+          <div className="animate-pulse">
+            <div className="text-6xl mb-4">🔍</div>
+            <p className="text-xl">Analyzing Claude Performance...</p>
+          </div>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section with NPX Command */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold mb-2">Claude NerfDetector</h1>
-            <p className="text-xl text-blue-100 mb-6">Community Performance Monitoring for Claude Code</p>
-            
-            {/* Quick Start Box */}
-            <div className="bg-gray-900 rounded-lg px-8 py-6 inline-block mb-4">
-              <p className="text-sm text-gray-400 mb-2">Run in Claude Code:</p>
-              <code className="text-green-400 text-2xl font-mono block mb-3">npx claude-nerf-test</code>
-              <p className="text-xs text-gray-500">Respond to all 5 prompts quickly!</p>
-              <p className="text-xs text-orange-400 mt-2">⏰ Auto-scores after 30 seconds</p>
-            </div>
-            
-            {/* How It Works - Compact */}
-            <div className="flex justify-center items-center gap-4 text-xs text-blue-200 mb-2">
-              <span>1. Run test</span>
-              <span className="text-blue-300">→</span>
-              <span>2. Respond quickly</span>
-              <span className="text-blue-300">→</span>
-              <span>3. Auto-scores in 30s</span>
-            </div>
-            
-            <p className="text-sm text-blue-200">Join {stats.uniqueUsers || 0} users tracking Claude's performance</p>
-          </div>
-        </div>
-      </div>
+  const performanceColor = stats.current.trend === 'up' ? 'text-green-400' : 
+                          stats.current.trend === 'down' ? 'text-red-400' : 
+                          'text-yellow-400';
 
-      {/* Header with stats */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900">
+      {/* Header */}
+      <header className="bg-black/30 backdrop-blur-md border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
             <div>
-              <p className="text-sm text-gray-500">Global Statistics</p>
-              <p className="text-lg font-semibold text-gray-900">{stats.totalRuns || 0} tests completed</p>
+              <h1 className="text-4xl font-bold text-white flex items-center gap-3">
+                🎯 Claude NerfDetector
+                <span className="text-sm bg-blue-500/20 px-3 py-1 rounded-full border border-blue-500/50">
+                  v3.0
+                </span>
+              </h1>
+              <p className="text-gray-400 mt-2">Real-time Performance Monitoring</p>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-500">Last updated</p>
-              <p className="text-gray-900">{format(lastUpdate, 'HH:mm:ss')}</p>
+            <div className="flex items-center gap-4">
+              <select
+                value={timeRange}
+                onChange={(e) => setTimeRange(e.target.value)}
+                className="bg-white/10 border border-white/20 text-white px-4 py-2 rounded-lg"
+              >
+                <option value="24h">Last 24 Hours</option>
+                <option value="7d">Last 7 Days</option>
+                <option value="30d">Last 30 Days</option>
+              </select>
+              <button
+                onClick={() => setAutoRefresh(!autoRefresh)}
+                className={`px-4 py-2 rounded-lg transition-all ${
+                  autoRefresh 
+                    ? 'bg-green-500/20 border border-green-500/50 text-green-400' 
+                    : 'bg-gray-500/20 border border-gray-500/50 text-gray-400'
+                }`}
+              >
+                {autoRefresh ? '🔄 Live' : '⏸ Paused'}
+              </button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Period Selector */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-        <div className="inline-flex rounded-lg border border-gray-200 bg-white p-1">
-          {['24h', '7d', '30d'].map((p) => (
-            <button
-              key={p}
-              onClick={() => setPeriod(p)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                period === p
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-700 hover:text-gray-900'
-              }`}
-            >
-              {p === '24h' ? '24 Hours' : p === '7d' ? '7 Days' : '30 Days'}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Key Metrics */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <MetricCard
-            title="Total Tests"
-            value={stats.totalRuns.toLocaleString()}
-            subtitle={`${stats.uniqueUsers} unique users`}
-            trend="+12%"
-          />
-          <MetricCard
-            title="Average Score"
-            value={`${stats.avgScore.toFixed(1)}/5`}
-            subtitle={`${(stats.avgScore / 5 * 100).toFixed(0)}% success rate`}
-            trend={stats.avgScore > 2.5 ? "+5%" : "-3%"}
-          />
-          <MetricCard
-            title="Response Time"
-            value={`${(stats.avgTtft / 1000).toFixed(1)}s`}
-            subtitle="Time to first token"
-            trend="-8%"
-          />
-          <MetricCard
-            title="Generation Speed"
-            value={`${stats.avgTokensPerSecond?.toFixed(0) || 'N/A'}`}
-            subtitle="Tokens per second"
-            trend="+15%"
-          />
-        </div>
-      </div>
-
-
-      {/* Charts */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Performance Trend */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Performance Trend</h3>
-          <PerformanceTrendChart data={stats.trends} />
-        </div>
-
-        {/* Regional Distribution */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Regional Distribution</h3>
-          <RegionalDistributionChart data={stats.regionalDistribution} />
-        </div>
-      </div>
-
-      {/* How It Works */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b">
-            <h3 className="text-lg font-semibold text-gray-900">🚀 How It Works - Fully Automatic!</h3>
-          </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              <div className="flex items-start">
-                <div className="flex-shrink-0 bg-blue-100 rounded-full p-2 mr-4">
-                  <span className="text-blue-600 font-bold">1</span>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900">Run the test</h4>
-                  <p className="text-sm text-gray-600 mt-1">Execute <code className="bg-gray-100 px-2 py-1 rounded">npx claude-nerf-test</code> in Claude Code</p>
-                </div>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Current Performance Hero Section */}
+        <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl p-8 mb-8 backdrop-blur-sm border border-white/10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Main Score */}
+            <div className="text-center">
+              <div className="text-sm text-gray-400 mb-2">Current Performance</div>
+              <div className="text-6xl font-bold text-white">
+                {stats.current.avgScore.toFixed(1)}
+                <span className="text-2xl text-gray-400">/100</span>
               </div>
-              
-              <div className="flex items-start">
-                <div className="flex-shrink-0 bg-blue-100 rounded-full p-2 mr-4">
-                  <span className="text-blue-600 font-bold">2</span>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900">Respond to all 5 prompts</h4>
-                  <p className="text-sm text-gray-600 mt-1">Answer the algorithm, parsing, bug fix, CLI, and math questions</p>
-                  <p className="text-xs text-orange-600 mt-1">⚡ You have 30 seconds to complete all responses!</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start">
-                <div className="flex-shrink-0 bg-green-100 rounded-full p-2 mr-4">
-                  <span className="text-green-600 font-bold">3</span>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900">Automatic scoring & submission</h4>
-                  <p className="text-sm text-gray-600 mt-1">After 30 seconds, your responses are automatically scored and submitted</p>
-                  <p className="text-sm text-gray-600 mt-1">View your results and compare with the community!</p>
-                </div>
+              <div className={`flex items-center justify-center gap-2 mt-2 ${performanceColor}`}>
+                {stats.current.trend === 'up' ? '📈' : stats.current.trend === 'down' ? '📉' : '➡️'}
+                <span className="text-lg font-semibold">
+                  {stats.current.changePercent > 0 ? '+' : ''}{stats.current.changePercent.toFixed(1)}%
+                </span>
+                <span className="text-sm text-gray-400">vs yesterday</span>
               </div>
             </div>
-            
-            <div className="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-400">
-              <p className="text-sm text-yellow-800">
-                <strong>💡 Tip:</strong> The test captures everything you output during the 30-second window. Make sure to respond to all 5 prompts before time runs out!
-              </p>
+
+            {/* Percentile */}
+            <div className="text-center">
+              <div className="text-sm text-gray-400 mb-2">Global Ranking</div>
+              <div className="text-6xl font-bold text-white">
+                {stats.current.percentile}
+                <span className="text-2xl text-gray-400">th</span>
+              </div>
+              <div className="text-sm text-gray-400 mt-2">
+                percentile ({stats.current.testCount} tests today)
+              </div>
+            </div>
+
+            {/* Status Indicator */}
+            <div className="text-center">
+              <div className="text-sm text-gray-400 mb-2">System Status</div>
+              <div className="text-4xl mb-2">
+                {stats.current.avgScore >= 80 ? '✅' : 
+                 stats.current.avgScore >= 70 ? '⚠️' : '🚨'}
+              </div>
+              <div className="text-lg text-white">
+                {stats.current.avgScore >= 80 ? 'Optimal' : 
+                 stats.current.avgScore >= 70 ? 'Degraded' : 'Critical'}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Recent Tests Feed */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 mb-8">
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b">
-            <h3 className="text-lg font-semibold text-gray-900">Live Test Feed</h3>
+        {/* Historical Comparison Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-black/30 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+            <div className="flex justify-between items-start">
+              <div>
+                <div className="text-sm text-gray-400">vs Yesterday</div>
+                <div className="text-2xl font-bold text-white mt-1">
+                  {stats.historical.yesterday.toFixed(1)}
+                </div>
+              </div>
+              <div className={`text-lg font-semibold ${
+                stats.current.avgScore > stats.historical.yesterday ? 'text-green-400' : 
+                stats.current.avgScore < stats.historical.yesterday ? 'text-red-400' : 
+                'text-gray-400'
+              }`}>
+                {stats.current.avgScore > stats.historical.yesterday ? '↑' : 
+                 stats.current.avgScore < stats.historical.yesterday ? '↓' : '='} 
+                {Math.abs(stats.current.avgScore - stats.historical.yesterday).toFixed(1)}
+              </div>
+            </div>
           </div>
-          <div className="p-8 text-center text-gray-500">
-            {stats.totalRuns > 0 ? (
-              <p>Real-time feed coming soon</p>
-            ) : (
-              <>
-                <p className="mb-2">No tests yet. Be the first!</p>
-                <code className="bg-gray-100 px-3 py-1 rounded text-sm font-mono">npx claude-nerf-test</code>
-              </>
-            )}
+
+          <div className="bg-black/30 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+            <div className="flex justify-between items-start">
+              <div>
+                <div className="text-sm text-gray-400">vs Last Week</div>
+                <div className="text-2xl font-bold text-white mt-1">
+                  {stats.historical.lastWeek.toFixed(1)}
+                </div>
+              </div>
+              <div className={`text-lg font-semibold ${
+                stats.current.avgScore > stats.historical.lastWeek ? 'text-green-400' : 
+                stats.current.avgScore < stats.historical.lastWeek ? 'text-red-400' : 
+                'text-gray-400'
+              }`}>
+                {stats.current.avgScore > stats.historical.lastWeek ? '↑' : 
+                 stats.current.avgScore < stats.historical.lastWeek ? '↓' : '='} 
+                {Math.abs(stats.current.avgScore - stats.historical.lastWeek).toFixed(1)}
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-black/30 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+            <div className="flex justify-between items-start">
+              <div>
+                <div className="text-sm text-gray-400">vs Last Month</div>
+                <div className="text-2xl font-bold text-white mt-1">
+                  {stats.historical.lastMonth.toFixed(1)}
+                </div>
+              </div>
+              <div className={`text-lg font-semibold ${
+                stats.current.avgScore > stats.historical.lastMonth ? 'text-green-400' : 
+                stats.current.avgScore < stats.historical.lastMonth ? 'text-red-400' : 
+                'text-gray-400'
+              }`}>
+                {stats.current.avgScore > stats.historical.lastMonth ? '↑' : 
+                 stats.current.avgScore < stats.historical.lastMonth ? '↓' : '='} 
+                {Math.abs(stats.current.avgScore - stats.historical.lastMonth).toFixed(1)}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Performance Timeline */}
+          <div className="bg-black/30 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+            <h2 className="text-xl font-semibold text-white mb-4">Performance Timeline</h2>
+            <PerformanceTrendChart data={stats.timeline} />
+          </div>
+
+          {/* Moving Average */}
+          <div className="bg-black/30 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+            <h2 className="text-xl font-semibold text-white mb-4">7-Day Moving Average</h2>
+            <MovingAverageChart data={stats.timeline} />
+          </div>
+
+          {/* Test-by-Test Breakdown */}
+          <div className="bg-black/30 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+            <h2 className="text-xl font-semibold text-white mb-4">Test Performance Changes</h2>
+            <TestBreakdownChart data={stats.testBreakdown} />
+          </div>
+
+          {/* Score Distribution */}
+          <div className="bg-black/30 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+            <h2 className="text-xl font-semibold text-white mb-4">Score Distribution Shift</h2>
+            <DistributionHistogram data={stats.distribution} />
+          </div>
+        </div>
+
+        {/* Performance Heatmap */}
+        <div className="bg-black/30 backdrop-blur-sm rounded-xl p-6 border border-white/10 mb-8">
+          <h2 className="text-xl font-semibold text-white mb-4">Performance Heatmap (Last 30 Days)</h2>
+          <PerformanceHeatmap data={stats.timeline} />
+        </div>
+
+        {/* Recent Tests Feed */}
+        <div className="bg-black/30 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+          <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+            <span className="animate-pulse text-red-500">●</span> Live Test Feed
+          </h2>
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {stats.recentTests.map((test) => (
+              <div key={test.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className={`text-3xl font-bold ${
+                    test.score >= 80 ? 'text-green-400' : 
+                    test.score >= 70 ? 'text-yellow-400' : 
+                    'text-red-400'
+                  }`}>
+                    {test.score}
+                  </div>
+                  <div>
+                    <div className="text-white">
+                      {test.version} • {test.region}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {format(new Date(test.timestamp), 'HH:mm:ss')}
+                    </div>
+                  </div>
+                </div>
+                <a 
+                  href={`/run/${test.id}`}
+                  className="text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  View →
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Call to Action */}
+        <div className="mt-8 text-center">
+          <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-xl p-6 border border-white/20">
+            <h3 className="text-xl font-semibold text-white mb-2">Test Claude Now</h3>
+            <p className="text-gray-400 mb-4">Run the test in Claude Code to contribute to performance tracking</p>
+            <code className="bg-black/50 px-4 py-2 rounded-lg text-blue-400 font-mono">
+              npx claude-nerf-test@latest claude
+            </code>
           </div>
         </div>
       </div>
-
     </div>
   );
 }
-
-function MetricCard({ title, value, subtitle, trend }: any) {
-  const isPositive = trend?.startsWith('+');
-  
-  return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <p className="text-sm font-medium text-gray-600">{title}</p>
-      <p className="text-3xl font-bold text-gray-900 mt-2">{value}</p>
-      <div className="flex justify-between items-end mt-2">
-        <p className="text-sm text-gray-500">{subtitle}</p>
-        {trend && (
-          <span className={`text-sm font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-            {trend}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
-
