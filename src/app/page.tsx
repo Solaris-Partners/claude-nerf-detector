@@ -34,6 +34,7 @@ interface PerformanceStats {
   current: {
     avgScore: number;
     testCount: number;
+    totalTestsToday: number;
     percentile: number;
     trend: 'up' | 'down' | 'stable';
     changePercent: number;
@@ -165,6 +166,35 @@ export default function PerformanceDashboard() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Test Command Call-to-Action */}
+        <div className="bg-gradient-to-r from-green-600/20 to-blue-600/20 rounded-xl p-4 mb-6 backdrop-blur-sm border border-white/10">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-lg">🚀 Test Claude Now:</span>
+              <code className="bg-black/50 px-4 py-2 rounded-lg text-blue-400 font-mono">
+                npx claude-nerf-test@latest claude
+              </code>
+            </div>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText('npx claude-nerf-test@latest claude');
+                // Show temporary feedback
+                const btn = event?.target as HTMLButtonElement;
+                if (btn) {
+                  const originalText = btn.textContent;
+                  btn.textContent = 'Copied!';
+                  setTimeout(() => {
+                    btn.textContent = originalText;
+                  }, 2000);
+                }
+              }}
+              className="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/50 rounded-lg text-blue-400 transition-all"
+            >
+              📋 Copy
+            </button>
+          </div>
+        </div>
+
         {/* Current Performance Hero Section */}
         <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl p-8 mb-8 backdrop-blur-sm border border-white/10">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -184,15 +214,14 @@ export default function PerformanceDashboard() {
               </div>
             </div>
 
-            {/* Percentile */}
+            {/* Daily Tests */}
             <div className="text-center">
-              <div className="text-sm text-gray-400 mb-2">Global Ranking</div>
+              <div className="text-sm text-gray-400 mb-2">Tests Today</div>
               <div className="text-6xl font-bold text-white">
-                {stats.current.percentile}
-                <span className="text-2xl text-gray-400">th</span>
+                {stats.current.totalTestsToday || stats.current.testCount}
               </div>
               <div className="text-sm text-gray-400 mt-2">
-                percentile ({stats.current.testCount} tests today)
+                {stats.current.percentile}th percentile globally
               </div>
             </div>
 

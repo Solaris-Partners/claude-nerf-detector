@@ -152,7 +152,8 @@ export async function GET(request: NextRequest) {
       id: t.id,
       timestamp: t.timestamp,
       score: t.test_score * 20,
-      version: t.claude_version || 'claude-code',
+      // Always show claude-code since all tests run in Claude Code
+      version: 'claude-code',
       region: t.region || 'Unknown',
     })) || [];
     
@@ -194,10 +195,18 @@ export async function GET(request: NextRequest) {
     
     const trend = changePercent > 1 ? 'up' : changePercent < -1 ? 'down' : 'stable';
     
+    // Get total tests today from all users
+    const { count: totalTestsToday } = await supabaseAdmin
+      .from('test_runs')
+      .select('*', { count: 'exact', head: true })
+      .gte('timestamp', startOfDay(now).toISOString())
+      .lte('timestamp', endDate.toISOString());
+    
     return NextResponse.json({
       current: {
         avgScore: currentAvgScore,
         testCount: currentScores?.length || 0,
+        totalTestsToday: totalTestsToday || 0,
         percentile,
         trend,
         changePercent,
